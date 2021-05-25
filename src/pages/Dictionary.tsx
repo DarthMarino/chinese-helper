@@ -7,6 +7,8 @@ import {
   IonSearchbar,
   IonList,
   IonButton,
+  IonItem,
+  IonLabel,
 } from "@ionic/react";
 import React, { useState } from "react";
 
@@ -17,13 +19,13 @@ const searchFunction = async (word: string) => {
     tld: "cn",
     to: "zh-CN",
   });
-  const data = result.data[0];
+  const data = result.data;
   return data;
 };
 
 const Dictionary: React.FC = () => {
   const [searchText, setSearchText] = useState("");
-  let searchResults: string[] = [];
+  const [searched, setSearched] = useState<string[]>([]);
   return (
     <IonPage>
       <IonHeader>
@@ -40,17 +42,20 @@ const Dictionary: React.FC = () => {
         ></IonSearchbar>
         <IonButton
           color="primary"
-          onClick={(event: React.MouseEvent<HTMLElement>) => {
-            searchFunction(searchText);
+          onClick={async (event: React.MouseEvent<HTMLElement>) => {
+            setSearched(await searchFunction(searchText));
           }}
         >
           Search
         </IonButton>
         <IonList>
-          {searchResults.length > 0 ? (
+          {searched.length > 0 ? (
             <>
-              {console.log(searchResults)}
-              <p>Found something</p>
+              {searched.map((result, index) => (
+                <IonItem key={index}>
+                  <IonLabel>{result}</IonLabel>
+                </IonItem>
+              ))}
             </>
           ) : (
             <p>Not found anything</p>
