@@ -6,8 +6,8 @@ import {
   IonTabs,
   IonTabBar,
   IonTabButton,
-  IonIcon,
   IonLabel,
+  IonIcon,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -48,15 +48,15 @@ const App: React.FC = () => (
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
           <IonTabButton tab="tab1" href="/tab1">
-            <IonIcon icon={calendar} />
+            <IonIcon icon={calendar.md} />
             <IonLabel>Tab 1</IonLabel>
           </IonTabButton>
           <IonTabButton tab="tab2" href="/tab2">
-            <IonIcon icon={person} />
+            <IonIcon icon={person.md} />
             <IonLabel>Tab 2</IonLabel>
           </IonTabButton>
           <IonTabButton tab="tab3" href="/tab3">
-            <IonIcon icon={map} />
+            <IonIcon icon={map.md} />
             <IonLabel>Tab 3</IonLabel>
           </IonTabButton>
         </IonTabBar>
