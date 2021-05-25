@@ -6,8 +6,6 @@ import {
   IonToolbar,
   IonSearchbar,
   IonList,
-  IonItem,
-  IonLabel,
   IonButton,
 } from "@ionic/react";
 import React, { useState } from "react";
