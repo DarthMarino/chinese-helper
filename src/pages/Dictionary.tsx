@@ -112,8 +112,8 @@ const Dictionary: React.FC = () => {
         canvas1.current as HTMLElement,
         wordsArray[0],
         {
-          width: 300,
-          height: 300,
+          width: 200,
+          height: 200,
           padding: 5,
           showCharacter: false,
         }
@@ -125,8 +125,8 @@ const Dictionary: React.FC = () => {
         canvas2.current as HTMLElement,
         wordsArray[1],
         {
-          width: 300,
-          height: 300,
+          width: 200,
+          height: 200,
           padding: 5,
           showCharacter: false,
         }
@@ -138,8 +138,8 @@ const Dictionary: React.FC = () => {
         canvas3.current as HTMLElement,
         wordsArray[2],
         {
-          width: 300,
-          height: 300,
+          width: 200,
+          height: 200,
           padding: 5,
           showCharacter: false,
         }
@@ -151,8 +151,8 @@ const Dictionary: React.FC = () => {
         canvas4.current as HTMLElement,
         wordsArray[3],
         {
-          width: 300,
-          height: 300,
+          width: 200,
+          height: 200,
           padding: 5,
           showCharacter: false,
         }
@@ -160,33 +160,35 @@ const Dictionary: React.FC = () => {
       writersArray.push(writer);
     }
     const concatAnimations = (theArray: HanziWriter[]) => {
-      if (theArray.length > 0) {
-        theArray[0].animateCharacter({
-          onComplete: () => {
-            setTimeout(function () {
-              if (theArray.length > 1) {
-                theArray[1].animateCharacter({
-                  onComplete: () => {
-                    setTimeout(function () {
-                      if (theArray.length > 2) {
-                        theArray[2].animateCharacter({
-                          onComplete: () => {
-                            setTimeout(function () {
-                              if (theArray.length > 3) {
-                                theArray[3].animateCharacter();
-                              }
-                            }, delayBetweenAnimations);
-                          },
-                        });
-                      }
-                    }, delayBetweenAnimations);
-                  },
-                });
-              }
-            }, delayBetweenAnimations);
-          },
-        });
-      }
+      setTimeout(function () {
+        if (theArray.length > 0) {
+          theArray[0].animateCharacter({
+            onComplete: () => {
+              setTimeout(function () {
+                if (theArray.length > 1) {
+                  theArray[1].animateCharacter({
+                    onComplete: () => {
+                      setTimeout(function () {
+                        if (theArray.length > 2) {
+                          theArray[2].animateCharacter({
+                            onComplete: () => {
+                              setTimeout(function () {
+                                if (theArray.length > 3) {
+                                  theArray[3].animateCharacter();
+                                }
+                              }, delayBetweenAnimations);
+                            },
+                          });
+                        }
+                      }, delayBetweenAnimations);
+                    },
+                  });
+                }
+              }, delayBetweenAnimations);
+            },
+          });
+        }
+      }, delayBetweenAnimations);
     };
     concatAnimations(writersArray);
   }, [selectedWord, canvas1, canvas2, canvas3, canvas4]);
