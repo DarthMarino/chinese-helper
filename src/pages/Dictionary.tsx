@@ -11,7 +11,7 @@ import {
   IonLabel,
   IonModal,
 } from "@ionic/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { RefObject, useEffect, useState } from "react";
 import HanziWriter from "hanzi-writer";
 import { search } from "chinese-lexicon";
 
@@ -89,9 +89,29 @@ interface RootObject {
   relevance: number;
 }
 
+const delayBetweenAnimations = 1000;
+
 const searchFunction = async (word: string) => {
   const result = await search(word);
   return result;
+};
+
+const animateChatacter = (character: HanziWriter, delay = 1000) => {
+  return new Promise((resolve, reject) => {
+    character.animateCharacter({
+      onComplete: () => {
+        setTimeout(() => {
+          resolve(character);
+        }, delay);
+      },
+    });
+  });
+};
+
+const concatAnimations = async function (characters: HanziWriter[]) {
+  for (let i = 0; i < characters.length; i++) {
+    await animateChatacter(characters[i], delayBetweenAnimations);
+  }
 };
 
 const Dictionary: React.FC = () => {
@@ -99,100 +119,49 @@ const Dictionary: React.FC = () => {
   const [searched, setSearched] = useState<RootObject[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
-  const canvas1 = useRef<HTMLDivElement>(null);
-  const canvas2 = useRef<HTMLDivElement>(null);
-  const canvas3 = useRef<HTMLDivElement>(null);
-  const canvas4 = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const wordsArray = selectedWord.split("");
-    let writersArray: HanziWriter[] = [];
-    const delayBetweenAnimations = 1000;
-    if (canvas1.current) {
-      const writer = HanziWriter.create(
-        canvas1.current as HTMLElement,
-        wordsArray[0],
-        {
-          width: 200,
-          height: 200,
-          padding: 5,
-          showCharacter: false,
-        }
-      );
-      writersArray.push(writer);
-    }
-    if (canvas2.current && wordsArray.length > 1) {
-      const writer = HanziWriter.create(
-        canvas2.current as HTMLElement,
-        wordsArray[1],
-        {
-          width: 200,
-          height: 200,
-          padding: 5,
-          showCharacter: false,
-        }
-      );
-      writersArray.push(writer);
-    }
-    if (canvas3.current && wordsArray.length > 2) {
-      const writer = HanziWriter.create(
-        canvas3.current as HTMLElement,
-        wordsArray[2],
-        {
-          width: 200,
-          height: 200,
-          padding: 5,
-          showCharacter: false,
-        }
-      );
-      writersArray.push(writer);
-    }
-    if (canvas4.current && wordsArray.length > 3) {
-      const writer = HanziWriter.create(
-        canvas4.current as HTMLElement,
-        wordsArray[3],
-        {
-          width: 200,
-          height: 200,
-          padding: 5,
-          showCharacter: false,
-        }
-      );
-      writersArray.push(writer);
-    }
-    const concatAnimations = (theArray: HanziWriter[]) => {
-      setTimeout(function () {
-        if (theArray.length > 0) {
-          theArray[0].animateCharacter({
-            onComplete: () => {
-              setTimeout(function () {
-                if (theArray.length > 1) {
-                  theArray[1].animateCharacter({
-                    onComplete: () => {
-                      setTimeout(function () {
-                        if (theArray.length > 2) {
-                          theArray[2].animateCharacter({
-                            onComplete: () => {
-                              setTimeout(function () {
-                                if (theArray.length > 3) {
-                                  theArray[3].animateCharacter();
-                                }
-                              }, delayBetweenAnimations);
-                            },
-                          });
-                        }
-                      }, delayBetweenAnimations);
-                    },
-                  });
-                }
-              }, delayBetweenAnimations);
-            },
-          });
-        }
-      }, delayBetweenAnimations);
-    };
-    concatAnimations(writersArray);
-  }, [selectedWord, canvas1, canvas2, canvas3, canvas4]);
+  const [renderedCanvases, setRenderedCanvases] = useState<JSX.Element[]>([]);
+  const [canvasesRef, setCanvasesRef] = useState<RefObject<HTMLDivElement>[]>(
+    []
+  );
 
+  useEffect(() => {
+    const chineseCharactertsArray = selectedWord.split("");
+    const newCanvases: JSX.Element[] = [];
+    const newCanvasesRef: RefObject<HTMLDivElement>[] = [];
+    chineseCharactertsArray.forEach((character, index) => {
+      let canvasRef = React.createRef<HTMLDivElement>();
+      newCanvases.push(<div ref={canvasRef} key={index} />);
+      newCanvasesRef.push(canvasRef);
+    });
+    setCanvasesRef(newCanvasesRef);
+    setRenderedCanvases(newCanvases);
+  }, [selectedWord]);
+
+  useEffect(() => {
+    let writersArray: HanziWriter[] = [];
+    const chineseCharactertsArray = selectedWord.split("");
+    chineseCharactertsArray.forEach((character, index) => {
+      if (canvasesRef[index]?.current) {
+        writersArray.push(
+          HanziWriter.create(
+            canvasesRef[index].current as HTMLElement,
+
+            character,
+            {
+              width: 200,
+              height: 200,
+              padding: 5,
+              showCharacter: false,
+              strokeAnimationSpeed: 5, // 5x normal speed
+              delayBetweenStrokes: 10, // milliseconds
+            }
+          )
+        );
+      }
+    });
+    concatAnimations(writersArray);
+    // eslint-disable-next-line
+  }, [renderedCanvases]);
   return (
     <IonPage>
       <IonHeader>
@@ -239,12 +208,7 @@ const Dictionary: React.FC = () => {
         {/* Writing character */}
         <IonModal isOpen={showModal}>
           <p>How to write</p>
-          <div className="hanzi-container">
-            <div ref={canvas1} />
-            <div ref={canvas2} />
-            <div ref={canvas3} />
-            <div ref={canvas4} />
-          </div>
+          <div className="hanzi-container">{renderedCanvases}</div>
           <IonButton onClick={() => setShowModal(false)}>Close Modal</IonButton>
         </IonModal>
       </IonContent>

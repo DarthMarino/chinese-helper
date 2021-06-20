@@ -1,3 +1,19 @@
+@font-face {
+  font-family: "InkPen";
+  src: url("/fonts/InkPen.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+.ink-title {
+  font-size: 3em;
+  margin: auto;
+  text-align: center;
+  font-family: "InkPen" !important;
+}
+.home-p {
+  font-size: 1.5em;
+  font-family: Arial, Helvetica, sans-serif;
+}
 .hanzi-container {
   display: flex;
   width: 100%;

@@ -1,33 +1,27 @@
 import {
   IonContent,
-  IonHeader,
+  IonCard,
+  IonCardContent,
+  IonItem,
   IonPage,
-  IonTitle,
-  IonToolbar,
 } from "@ionic/react";
 import React from "react";
-
 const Home: React.FC = () => {
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Ionic Blank</IonTitle>
-        </IonToolbar>
-      </IonHeader>
       <IonContent className="ion-padding">
-        The world is your oyster.
-        <p>
-          If you get lost, the{" "}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://ionicframework.com/docs/"
-          >
-            docs
-          </a>{" "}
-          will be your guide.
-        </p>
+        <h1 className="ink-title">Chinese Helper</h1>
+        <IonCard>
+          <IonItem>
+            <img src="./assets/art/flowers.jpg" alt="Cool Artwork" />
+          </IonItem>
+
+          <IonCardContent>
+            This application was made in order to help others like me in
+            learning how to write hanzi/chinese characters, by learning the
+            paths.
+          </IonCardContent>
+        </IonCard>
       </IonContent>
     </IonPage>
   );
