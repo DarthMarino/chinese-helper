@@ -91,12 +91,14 @@ interface RootObject {
 
 const delayBetweenAnimations = 1000;
 
+// Using the search function of the API
 const searchFunction = async (word: string) => {
   const result = await search(word);
   return result;
 };
 
-const animateChatacter = (character: HanziWriter, delay = 1000) => {
+// Here we use the hanziWriter to keep animating the character until is done and then a dealy of 1 sec.
+const animateCharacter = (character: HanziWriter, delay = 1000) => {
   return new Promise((resolve, reject) => {
     character.animateCharacter({
       onComplete: () => {
@@ -108,60 +110,122 @@ const animateChatacter = (character: HanziWriter, delay = 1000) => {
   });
 };
 
+// Here we concat animations to render more than 1 character
 const concatAnimations = async function (characters: HanziWriter[]) {
   for (let i = 0; i < characters.length; i++) {
-    await animateChatacter(characters[i], delayBetweenAnimations);
+    await animateCharacter(characters[i], delayBetweenAnimations);
   }
 };
 
 const Dictionary: React.FC = () => {
+  // This state is for the searchbar
   const [searchText, setSearchText] = useState("");
+
+  // This is an array made of all the words found
   const [searched, setSearched] = useState<RootObject[]>([]);
+
+  // This tells the app if the modal is closed or not.
   const [showModal, setShowModal] = useState(false);
+
+  // This is the word selected for the modal
   const [selectedWord, setSelectedWord] = useState("");
+
+  // This is the group of words about to be rendered
   const [renderedCanvases, setRenderedCanvases] = useState<JSX.Element[]>([]);
+
+  // This the group of references for the diferent canvases in order to gain better control for each of them.
   const [canvasesRef, setCanvasesRef] = useState<RefObject<HTMLDivElement>[]>(
     []
   );
 
+  let [hanziWriters, setHanziWriters] = useState<HanziWriter[]>();
+
+  // Definition Object
+  const [wordObj, setWordObj] = useState<RootObject>();
+
+  // Everything related to speed
+  const [traceSpeed, setTraceSpeed] = useState<number>(1); // Default value
+  const setSpeed = (symbol: string) => {
+    if (traceSpeed < 5 && symbol === "+") {
+      setTraceSpeed(traceSpeed + 1);
+    }
+    if (traceSpeed > 1 && symbol === "-") {
+      setTraceSpeed(traceSpeed - 1);
+    }
+    hanziWriters &&
+      (hanziWriters[0]._options.strokeAnimationSpeed = traceSpeed);
+  };
+
+  // Each time the selected word changes you the array of canvases is remade in order to be rendered in the new modal.
   useEffect(() => {
     const chineseCharactertsArray = selectedWord.split("");
     const newCanvases: JSX.Element[] = [];
     const newCanvasesRef: RefObject<HTMLDivElement>[] = [];
     chineseCharactertsArray.forEach((character, index) => {
       let canvasRef = React.createRef<HTMLDivElement>();
-      newCanvases.push(<div ref={canvasRef} key={index} />);
+      newCanvases.push(<div className="hanzi" ref={canvasRef} key={index} />);
       newCanvasesRef.push(canvasRef);
     });
-    setCanvasesRef(newCanvasesRef);
-    setRenderedCanvases(newCanvases);
+    if (canvasesRef !== newCanvasesRef) {
+      setCanvasesRef(newCanvasesRef);
+    }
+    if (renderedCanvases !== newCanvases) {
+      setRenderedCanvases(newCanvases);
+    }
+    // eslint-disable-next-line
   }, [selectedWord]);
 
+  // Each time the rendered canvases array changes the hanzi writer starts to animate the writings
+  // of each character one after one.
   useEffect(() => {
-    let writersArray: HanziWriter[] = [];
+    let tempWritersArray: HanziWriter[] = [];
     const chineseCharactertsArray = selectedWord.split("");
     chineseCharactertsArray.forEach((character, index) => {
       if (canvasesRef[index]?.current) {
-        writersArray.push(
+        tempWritersArray.push(
           HanziWriter.create(
             canvasesRef[index].current as HTMLElement,
-
             character,
             {
               width: 200,
               height: 200,
               padding: 5,
               showCharacter: false,
-              strokeAnimationSpeed: 5, // 5x normal speed
+              strokeAnimationSpeed: traceSpeed,
               delayBetweenStrokes: 10, // milliseconds
+              onLoadCharDataSuccess: () => {
+                (canvasesRef[index].current as HTMLElement).addEventListener(
+                  "click",
+                  () => {
+                    tempWritersArray[index].animateCharacter();
+                  }
+                );
+              },
             }
           )
         );
       }
     });
-    concatAnimations(writersArray);
+    setHanziWriters(tempWritersArray);
+    concatAnimations(tempWritersArray);
+
     // eslint-disable-next-line
   }, [renderedCanvases]);
+
+  function renderDefinitions() {
+    return (
+      <div className="definition-container">
+        {wordObj?.definitions.map((definition, index) => {
+          return (
+            <p key={index + 1} className="definition">
+              {index + 1}. {definition}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <IonPage>
       <IonHeader>
@@ -192,6 +256,7 @@ const Dictionary: React.FC = () => {
                   onClick={() => {
                     setSelectedWord(result.simp);
                     setShowModal(true);
+                    setWordObj(result);
                   }}
                   key={index}
                 >
@@ -205,12 +270,46 @@ const Dictionary: React.FC = () => {
             <p>Not found anything</p>
           )}
         </IonList>
+
         {/* Writing character */}
-        <IonModal isOpen={showModal}>
-          <p>How to write</p>
-          <div className="hanzi-container">{renderedCanvases}</div>
-          <IonButton onClick={() => setShowModal(false)}>Close Modal</IonButton>
-        </IonModal>
+        {showModal && (
+          <IonModal
+            isOpen
+            onWillDismiss={() => {
+              setShowModal(false);
+            }}
+          >
+            <h1 className="ink-modal-title">{wordObj?.pinyin}</h1>
+            <h2 className="definition-container">Definition:</h2>
+            {renderDefinitions()}
+            <div className="hanzi-container">{renderedCanvases}</div>
+            <div>
+              <IonButton
+                onClick={() => {
+                  setSpeed("-");
+                }}
+              >
+                Slower
+              </IonButton>
+              <IonButton
+                onClick={() => {
+                  setSpeed("+");
+                }}
+              >
+                Faster
+              </IonButton>
+            </div>
+
+            <IonButton
+              onClick={() => {
+                setShowModal(false);
+                setSelectedWord("");
+              }}
+            >
+              Close Modal
+            </IonButton>
+          </IonModal>
+        )}
       </IonContent>
     </IonPage>
   );

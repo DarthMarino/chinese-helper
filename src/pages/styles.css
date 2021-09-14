@@ -23,6 +23,9 @@
   text-align: center;
   font-family: "InkPen" !important;
 }
+.ink-modal-title {
+  align-self: center;
+}
 .home-img {
   width: 100%;
   height: fit-content;
@@ -38,7 +41,21 @@
 }
 .hanzi-container {
   display: flex;
-  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  width: auto;
+}
+.hanzi {
+  justify-content: flex-start;
+}
+.definition-container {
+  justify-content: start;
+  margin-left: 2rem;
+}
+.definition {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  justify-content: stretch;
 }
 
 @media only screen and (min-width: 800px) {
